@@ -1,13 +1,12 @@
+-- lsp config
 return {
   "neovim/nvim-lspconfig",
   dependencies = {
     {
       "folke/lazydev.nvim",
-      ft = "lua", -- only load on lua files
+      ft = "lua",
       opts = {
         library = {
-          -- See the configuration section for more details
-          -- Load luvit types when the `vim.uv` word is found
           { path = "${3rd}/luv/library", words = { "vim%.uv" } },
         },
       },
@@ -26,6 +25,8 @@ return {
       },
     })
 
+    local capabilities = require("cmp_nvim_lsp").default_capabilities()
+
     require("mason-lspconfig").setup({
       ensure_installed = {
         "lua_ls",
@@ -36,18 +37,16 @@ return {
         "ruff",
         "bashls",
       },
-
       handlers = {
         function(server_name)
-          local capabilities = require("cmp_nvim_lsp").default_capabilities()
-          require("lspconfig")[server_name].setup({
+          vim.lsp.config(server_name, {
             capabilities = capabilities,
           })
+          vim.lsp.enable(server_name)
         end,
 
         ["gopls"] = function()
-          local lspconfig = require("lspconfig")
-          lspconfig.gopls.setup({
+          vim.lsp.config("gopls", {
             capabilities = capabilities,
             settings = {
               gopls = {
@@ -56,43 +55,68 @@ return {
               },
             },
           })
+          vim.lsp.enable("gopls")
+        end,
+
+        ["clangd"] = function()
+          vim.lsp.config("clangd", {
+            capabilities = capabilities,
+            cmd = {
+              "clangd",
+              "--background-index",
+              "--clang-tidy",
+              "--completion-style=detailed",
+              "--header-insertion=iwyu",
+              "--header-insertion-decorators",
+              "--pch-storage=memory",
+            },
+            settings = {
+              clangd = {
+                fallbackFlags = { "-std=c++17" },
+              },
+            },
+          })
+          vim.lsp.enable("clangd")
         end,
       },
     })
 
-    require("lspconfig").ruff.setup({})
-
     vim.diagnostic.config({
-      virtual_text = true, -- inline errors
-      signs = true,     -- gutter signs
-      underline = true, -- underline problematic text
+      virtual_text = {
+        severity = { min = vim.diagnostic.severity.WARN },
+        source = "if_many",
+      },
+      signs = true,
+      underline = true,
+      update_in_insert = false,
       float = {
         focusable = false,
         style = "minimal",
         border = "rounded",
-        ---@diagnostic disable-next-line: assign-type-mismatch
         source = "always",
         header = "",
         prefix = "",
-      },                 -- pretty floating window
-
-      severity_sort = true, -- sort by severity
+      },
+      severity_sort = true,
     })
 
-    vim.keymap.set("n", "K", function()
-      vim.lsp.buf.hover()
-    end)
-    vim.keymap.set("n", "<leader>gd", function()
-      vim.lsp.buf.definition()
-    end)
-    vim.keymap.set("n", "<leader>gr", function()
-      vim.lsp.buf.references()
-    end)
-    vim.keymap.set("n", "<space>cf", function()
-      vim.lsp.buf.format()
-    end)
-    vim.keymap.set("n", "<space>ca", function()
-      vim.lsp.buf.code_action()
-    end)
+    -- LSP Navigation & Actions
+    vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "Hover documentation" })
+    vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "Go to definition" })
+    vim.keymap.set("n", "<leader>gd", vim.lsp.buf.definition, { desc = "Go to definition" })
+    vim.keymap.set("n", "gr", vim.lsp.buf.references, { desc = "Go to references" })
+    vim.keymap.set("n", "<leader>gr", vim.lsp.buf.references, { desc = "Go to references" })
+    vim.keymap.set("n", "gi", vim.lsp.buf.implementation, { desc = "Go to implementation" })
+    vim.keymap.set("n", "gt", vim.lsp.buf.type_definition, { desc = "Go to type definition" })
+    vim.keymap.set("n", "<leader>cf", vim.lsp.buf.format, { desc = "Format buffer" })
+    vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code action" })
+    vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, { desc = "Rename symbol" })
+
+    -- Diagnostics Navigation
+    vim.keymap.set("n", "<leader>d", vim.diagnostic.open_float, { desc = "Show diagnostic" })
+    vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "Next diagnostic" })
+    vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "Previous diagnostic" })
+    vim.keymap.set("n", "<leader>xq", vim.diagnostic.setqflist, { desc = "Diagnostics to quickfix" })
+    vim.keymap.set("n", "<leader>xl", vim.diagnostic.setloclist, { desc = "Buffer diagnostics to loclist" })
   end,
 }
