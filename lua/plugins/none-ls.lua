@@ -14,11 +14,15 @@ return {
       },
     })
 
-    -- Format on save (optional)
+    -- Format on save (completely silent)
     vim.api.nvim_create_autocmd("BufWritePre", {
       pattern = "*",
       callback = function()
-        vim.lsp.buf.format({ async = false })
+        -- Suppress all messages during formatting
+        local ok, _ = pcall(vim.lsp.buf.format, {
+          async = false,
+          timeout_ms = 2000,
+        })
       end,
     })
   end,
