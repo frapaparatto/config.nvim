@@ -14,6 +14,7 @@ return {
       },
     })
 
+    --[[
     -- Format on save (completely silent)
     vim.api.nvim_create_autocmd("BufWritePre", {
       pattern = "*",
@@ -24,6 +25,6 @@ return {
           timeout_ms = 2000,
         })
       end,
-    })
+    }) ]]
   end,
 }
