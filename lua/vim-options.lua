@@ -8,16 +8,15 @@ vim.opt.tabstop = 2
 vim.opt.shiftwidth = 2
 vim.opt.softtabstop = 2
 
--- Override per il repo Git: tab veri, width 8
 vim.api.nvim_create_autocmd("BufEnter", {
   callback = function()
-    local cwd = vim.fn.getcwd()
-    -- adatta la stringa al path dove hai clonato git.git
-    if cwd:match("/git%.git$") or cwd:match("/git$") then
+    local path = vim.fn.expand("%:p")
+
+    if path:match("/workspace/oss/git/") then
       vim.opt_local.expandtab = false
       vim.opt_local.tabstop = 8
-      vim.opt_local.shiftwidth = 8
       vim.opt_local.softtabstop = 8
+      vim.opt_local.shiftwidth = 8
     end
   end,
 })
