@@ -2,10 +2,18 @@
 --vim.opt.relativenumber = true
 vim.opt.clipboard = "unnamedplus"
 
-vim.cmd("set expandtab")
-vim.cmd("set tabstop=2")
-vim.cmd("set softtabstop=2")
-vim.cmd("set shiftwidth=2")
+vim.api.nvim_create_autocmd("BufEnter", {
+  callback = function()
+    local path = vim.fn.expand("%:p")
+
+    if path:match("/workspace/oss/git/") then
+      vim.opt_local.expandtab = false
+      vim.opt_local.tabstop = 8
+      vim.opt_local.softtabstop = 8
+      vim.opt_local.shiftwidth = 8
+    end
+  end,
+})
 
 -- Leader key
 vim.g.mapleader = " "
