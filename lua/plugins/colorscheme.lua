@@ -8,6 +8,7 @@
 --    end,
 --  },
 --}
+
 return {
   {
     "tjdevries/colorbuddy.nvim",
@@ -18,6 +19,7 @@ return {
     end,
   },
 }
+
 --return {
 --  "neanias/everforest-nvim",
 --  lazy = false,
