@@ -16,7 +16,7 @@ return {
 			})
 
 			local ensureInstalled = {
-				"c", "lua", "vim", "vimdoc",
+				"c", "cpp", "lua", "vim", "vimdoc",
 				"python", "go", "rust",
 				"javascript", "typescript",
 				"bash", "json", "yaml", "toml", "html", "css",
