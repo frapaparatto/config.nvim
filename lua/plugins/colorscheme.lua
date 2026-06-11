@@ -1,13 +1,18 @@
---return {
---  {
---    "rebelot/kanagawa.nvim",
---    config = function()
---      vim.cmd("colorscheme kanagawa-dragon")
---      --vim.cmd("colorscheme kanagawa-wave")
---      --vim.cmd("colorscheme kanagawa-lotus")
---    end,
---  },
---}
+--[[
+return {
+  {
+    "rebelot/kanagawa.nvim",
+    lazy = false,
+    priority = 1000,
+    config = function()
+      vim.opt.termguicolors = true
+
+      vim.cmd("colorscheme kanagawa-dragon")
+
+    end,
+  },
+}
+--]]
 
 return {
   {
@@ -91,11 +96,5 @@ return {
 --  priority = 1000,
 --  config = function()
 --    vim.cmd("colorscheme kanso")
---  end,
---}
---return {
---  "tjdevries/colorbuddy.nvim",
---  config = function()
---    vim.cmd.colorscheme("gruvbuddy")
 --  end,
 --}

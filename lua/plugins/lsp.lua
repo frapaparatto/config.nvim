@@ -31,18 +31,50 @@ return {
       ensure_installed = {
         "lua_ls",
         "pyright",
+        "ruff",
         "gopls",
         "rust_analyzer",
         "clangd",
-        "ruff",
         "bashls",
       },
       handlers = {
+        -- default handler
         function(server_name)
           vim.lsp.config(server_name, {
             capabilities = capabilities,
           })
           vim.lsp.enable(server_name)
+        end,
+
+        ["pyright"] = function()
+          vim.lsp.config("pyright", {
+            capabilities = capabilities,
+            settings = {
+              pyright = {
+                disableOrganizeImports = true,
+              },
+              python = {
+                analysis = {
+                  ignore = { "*" },
+                },
+              },
+            },
+          })
+          vim.lsp.enable("pyright")
+        end,
+
+        ["ruff"] = function()
+          vim.lsp.config("ruff", {
+            capabilities = capabilities,
+            init_options = {
+              settings = {
+                lineLength = 88,
+                fixAll = true,
+                organizeImports = true,
+              },
+            },
+          })
+          vim.lsp.enable("ruff")
         end,
 
         ["gopls"] = function()
@@ -81,6 +113,21 @@ return {
       },
     })
 
+    -- ruff format on save, explicit server name to avoid ambiguity with pyright
+    vim.api.nvim_create_autocmd("LspAttach", {
+      callback = function(args)
+        local client = vim.lsp.get_client_by_id(args.data.client_id)
+        if client and client.name == "ruff" then
+          vim.api.nvim_create_autocmd("BufWritePre", {
+            buffer = args.buf,
+            callback = function()
+              vim.lsp.buf.format({ name = "ruff", async = false })
+            end,
+          })
+        end
+      end,
+    })
+
     vim.diagnostic.config({
       virtual_text = {
         severity = { min = vim.diagnostic.severity.WARN },
@@ -99,20 +146,28 @@ return {
       severity_sort = true,
     })
 
-    -- LSP Navigation & Actions
-    vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "Hover documentation" })
-    vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "Go to definition" })
-    vim.keymap.set("n", "gr", vim.lsp.buf.references, { desc = "Go to references" })
-    vim.keymap.set("n", "gi", vim.lsp.buf.implementation, { desc = "Go to implementation" })
-    vim.keymap.set("n", "gt", vim.lsp.buf.type_definition, { desc = "Go to type definition" })
+    -- LSP keymaps, scoped to buffer on attach
+    vim.api.nvim_create_autocmd("LspAttach", {
+      callback = function(args)
+        local opts = { buffer = args.buf }
 
-    vim.keymap.set("n", "<leader>cf", vim.lsp.buf.format, { desc = "Format buffer" })
-    vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code action" })
-    vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, { desc = "Rename symbol" })
+        -- navigation
+        vim.keymap.set("n", "K",  vim.lsp.buf.hover,           vim.tbl_extend("force", opts, { desc = "Hover documentation" }))
+        vim.keymap.set("n", "gd", vim.lsp.buf.definition,      vim.tbl_extend("force", opts, { desc = "Go to definition" }))
+        vim.keymap.set("n", "gr", vim.lsp.buf.references,      vim.tbl_extend("force", opts, { desc = "Go to references" }))
+        vim.keymap.set("n", "gi", vim.lsp.buf.implementation,  vim.tbl_extend("force", opts, { desc = "Go to implementation" }))
+        vim.keymap.set("n", "gt", vim.lsp.buf.type_definition, vim.tbl_extend("force", opts, { desc = "Go to type definition" }))
 
-    -- Diagnostics Navigation
-    vim.keymap.set("n", "<leader>d", vim.diagnostic.open_float, { desc = "Show diagnostic" })
-    vim.keymap.set("n", "<leader>xq", vim.diagnostic.setqflist, { desc = "Diagnostics to quickfix" })
-    vim.keymap.set("n", "<leader>xl", vim.diagnostic.setloclist, { desc = "Buffer diagnostics to loclist" })
+        -- actions
+        vim.keymap.set("n", "<leader>cf", vim.lsp.buf.format,      vim.tbl_extend("force", opts, { desc = "Format buffer" }))
+        vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, vim.tbl_extend("force", opts, { desc = "Code action" }))
+        vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename,      vim.tbl_extend("force", opts, { desc = "Rename symbol" }))
+
+        -- diagnostics
+        vim.keymap.set("n", "<leader>d",  vim.diagnostic.open_float, vim.tbl_extend("force", opts, { desc = "Show diagnostic" }))
+        vim.keymap.set("n", "<leader>xq", vim.diagnostic.setqflist,  vim.tbl_extend("force", opts, { desc = "Diagnostics to quickfix" }))
+        vim.keymap.set("n", "<leader>xl", vim.diagnostic.setloclist, vim.tbl_extend("force", opts, { desc = "Buffer diagnostics to loclist" }))
+      end,
+    })
   end,
 }
